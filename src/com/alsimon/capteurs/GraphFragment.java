@@ -8,6 +8,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,7 +23,6 @@ import com.jjoe64.graphview.LineGraphView;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -33,6 +33,7 @@ import au.com.bytecode.opencsv.CSVWriter;
 
 public class GraphFragment extends Fragment implements SensorEventListener {
     public static final String ARG_POSITION = "position";
+    boolean writeFile = false;
     private SensorManager mSensorManager;
     private List<Sensor> mSensor;
     private GraphView graphView;
@@ -46,6 +47,7 @@ public class GraphFragment extends Fragment implements SensorEventListener {
     private List<SensorEventListener> mSensorEvListeners;
     private int sensorDelay = SensorManager.SENSOR_DELAY_NORMAL;
     private boolean sensorAdded = false;
+    private int maxNumberOfValues = 1000;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -56,7 +58,7 @@ public class GraphFragment extends Fragment implements SensorEventListener {
                     .getSystemService(Context.SENSOR_SERVICE);
             List<Sensor> sensors = mSensorManager
                     .getSensorList(Sensor.TYPE_ALL);
-            gestionSensor(sensors.get(getArguments().getInt(ARG_POSITION)));
+            manageSensor(sensors.get(getArguments().getInt(ARG_POSITION)));
         }
         return inflater.inflate(R.layout.graph_fragment, container, false);
     }
@@ -86,9 +88,9 @@ public class GraphFragment extends Fragment implements SensorEventListener {
 
         GraphViewData[] data = new GraphViewData[]{new GraphViewData(0, 0)};
         GraphViewSeries series;
-        graphView.setTitle(getName(event.sensor));
+        graphView.setTitle(getSensorName(event.sensor));
         int offshift = getOffshift(event.sensor);
-
+        Log.e("" + offshift, getSensorName(event.sensor));
         for (int i = 0; i < values.length; i++) {
             series = new GraphViewSeries(getAxisLabel(i + offshift),
                     getAxisStyle(i + offshift), data);
@@ -105,8 +107,8 @@ public class GraphFragment extends Fragment implements SensorEventListener {
         return 0;
     }
 
-    private String getName(Sensor s) {
-        return s.getName().replace(" Sensor", "");
+    private String getSensorName(Sensor s) {
+        return s.getName().replace(" Sensor", "").replace(" ", "_");
     }
 
     @Override
@@ -121,31 +123,18 @@ public class GraphFragment extends Fragment implements SensorEventListener {
         if (sensorAdded) {
             drawGraph(event);
             sensorAdded = false;
-            try {
-                SimpleDateFormat sdf = new SimpleDateFormat("HH-mm-ss",
-                        Locale.ENGLISH);
-                String date = sdf.format(Calendar.getInstance().getTime());
-                File file = new File(getActivity().getExternalFilesDir(null),
-                        "Sensor_" + getName(event.sensor) + "_" + date + ".csv");
-                SensorWriter.getInstance().setWriter(
-                        new CSVWriter(new FileWriter(file, true),
-                                CSVWriter.DEFAULT_SEPARATOR,
-                                CSVWriter.NO_ESCAPE_CHARACTER)
-                );
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
         boolean scrollToEnd;
         for (int i = 0; i < values.length; i++) {
             scrollToEnd = (i == (values.length - 1)) & pause;
             graphSeries.get(i + offshift).appendData(
                     new GraphViewData((event.timestamp - timestamp) / 1000000,
-                            values[i]), scrollToEnd, 1000
+                            values[i]), scrollToEnd, maxNumberOfValues
             );
         }
-        SensorWriter.getInstance().writeFloat(values,
-                Long.toString(event.timestamp - timestamp));
+        if (writeFile)
+            SensorWriter.getInstance().writeFloat(values,
+                    Long.toString(event.timestamp - timestamp));
     }
 
     @Override
@@ -153,7 +142,7 @@ public class GraphFragment extends Fragment implements SensorEventListener {
         super.onResume();
     }
 
-    public void gestionSensor(Sensor s) {
+    public void manageSensor(Sensor s) {
         if (mSensorManager == null) {
             mSensorManager = (SensorManager) getActivity().getSystemService(
                     Context.SENSOR_SERVICE);
@@ -171,7 +160,7 @@ public class GraphFragment extends Fragment implements SensorEventListener {
         }
     }
 
-    public void gestionSensor(Sensor s, boolean refreshSensors) {
+    public void manageSensor(Sensor s, boolean refreshSensors) {
         if (s == null) {
             if (mSensorEvListeners.size() != 0) {
                 for (int i = 0; i < mSensor.size(); i++) {
@@ -203,6 +192,28 @@ public class GraphFragment extends Fragment implements SensorEventListener {
     public void onStop() {
         super.onStop();
         SensorWriter.getInstance().close();
+    }
+
+    public void toggleWriteData() {
+        if (writeFile) {
+            writeFile = false;
+        } else {
+            SimpleDateFormat sdf = new SimpleDateFormat("HH-mm-ss",
+                    Locale.ENGLISH);
+            String date = sdf.format(Calendar.getInstance().getTime());
+            File file = new File(getActivity().getExternalFilesDir(null),
+                    "Sensor_" + date + ".csv");
+            try {
+                SensorWriter.getInstance().setWriter(
+                        new CSVWriter(new FileWriter(file, true),
+                                CSVWriter.DEFAULT_SEPARATOR,
+                                CSVWriter.NO_ESCAPE_CHARACTER)
+                );
+                writeFile = true;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public String getAxisLabel(int i) {
@@ -239,6 +250,6 @@ public class GraphFragment extends Fragment implements SensorEventListener {
         } else {
             sensorDelay = SensorManager.SENSOR_DELAY_NORMAL;
         }
-        gestionSensor(null);
+        manageSensor(null, true);
     }
 }

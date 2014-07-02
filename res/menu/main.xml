@@ -1,19 +1,25 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context="com.alsimon.capteurs.MainActivity" >
+    tools:context="com.alsimon.capteurs.MainActivity">
 
     <item
         android:id="@+id/action_pause"
         android:icon="@drawable/ic_action_pause"
         android:orderInCategory="100"
         android:title="@string/action_pause"
-        app:showAsAction="ifRoom"/>
+        app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_change_speed"
         android:icon="@drawable/ic_action_playback_next"
         android:orderInCategory="100"
         android:title="@string/change_speed"
-        app:showAsAction="ifRoom"/>
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_toggle_write_sensor_data"
+        android:orderInCategory="100"
+        android:title="@string/change_toggle_write_sensor_data"
+        app:showAsAction="ifRoom" />
+
 
 </menu>

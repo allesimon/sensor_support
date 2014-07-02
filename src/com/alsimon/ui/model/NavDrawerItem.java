@@ -1,58 +1,58 @@
 package com.alsimon.ui.model;
 
 public class NavDrawerItem {
-	public static final int NO_ICON = -1;
-	private String title;
-	private int icon;
-	private String count = "0";
-	// boolean to set visiblity of the counter
-	private boolean isCounterVisible = false;
+    public static final int NO_ICON = -1;
+    private String title;
+    private int icon;
+    private String count = "0";
+    // boolean to set visiblity of the counter
+    private boolean isCounterVisible = false;
 
-	public NavDrawerItem() {
-	}
+    public NavDrawerItem() {
+    }
 
-	public NavDrawerItem(String title, int icon) {
-		this.title = title;
-		this.icon = icon;
-	}
+    public NavDrawerItem(String title, int icon) {
+        this.title = title;
+        this.icon = icon;
+    }
 
-	public NavDrawerItem(String title, int icon, boolean isCounterVisible,
-			String count) {
-		this.title = title;
-		this.icon = icon;
-		this.isCounterVisible = isCounterVisible;
-		this.count = count;
-	}
+    public NavDrawerItem(String title, int icon, boolean isCounterVisible,
+                         String count) {
+        this.title = title;
+        this.icon = icon;
+        this.isCounterVisible = isCounterVisible;
+        this.count = count;
+    }
 
-	public String getTitle() {
-		return this.title;
-	}
+    public String getTitle() {
+        return this.title;
+    }
 
-	public int getIcon() {
-		return this.icon;
-	}
+    public int getIcon() {
+        return this.icon;
+    }
 
-	public String getCount() {
-		return this.count;
-	}
+    public String getCount() {
+        return this.count;
+    }
 
-	public boolean getCounterVisibility() {
-		return this.isCounterVisible;
-	}
+    public boolean getCounterVisibility() {
+        return this.isCounterVisible;
+    }
 
-	public void setTitle(String title) {
-		this.title = title;
-	}
+    public void setTitle(String title) {
+        this.title = title;
+    }
 
-	public void setIcon(int icon) {
-		this.icon = icon;
-	}
+    public void setIcon(int icon) {
+        this.icon = icon;
+    }
 
-	public void setCount(String count) {
-		this.count = count;
-	}
+    public void setCount(String count) {
+        this.count = count;
+    }
 
-	public void setCounterVisibility(boolean isCounterVisible) {
-		this.isCounterVisible = isCounterVisible;
-	}
+    public void setCounterVisibility(boolean isCounterVisible) {
+        this.isCounterVisible = isCounterVisible;
+    }
 }

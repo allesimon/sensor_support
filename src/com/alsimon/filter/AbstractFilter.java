@@ -1,5 +1,11 @@
 package com.alsimon.filter;
 
-public interface AbstractFilter {
-	public float[] filterFloat(float[] data);
+public abstract class AbstractFilter {
+    /**
+     * Filter the data.
+     *
+     * @param data contains input the data.
+     * @return the filtered output data.
+     */
+    public abstract float[] filterFloat(float[] data);
 }

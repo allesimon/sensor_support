@@ -19,6 +19,7 @@
     <orderEntry type="library" name="libs1" level="project" />
     <orderEntry type="module" module-name="opencsv" />
     <orderEntry type="module" module-name="android-support-v7-appcompat" />
+    <orderEntry type="library" name="opencsv-2.3 (2)" level="project" />
   </component>
 </module>
 
