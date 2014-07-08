@@ -11,6 +11,8 @@ import android.util.Log;
 import android.view.MenuItem;
 
 import com.alsimon.capteurs.SensorListFragment.OnSensorSelectedListener;
+import com.alsimon.filter.MeanFilter;
+import com.alsimon.sensor.SensorWrapper;
 import com.alsimon.ui.model.ActionBarDrawerActivity;
 import com.alsimon.ui.model.NavDrawerItem;
 
@@ -24,9 +26,12 @@ public class MainActivity extends ActionBarDrawerActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         changeFragment(new GraphFragment());
+        SensorWrapper.getInstance().initialize((SensorManager)
+                getSystemService(Context.SENSOR_SERVICE));
+
+
         List<NavDrawerItem> navItems = new ArrayList<NavDrawerItem>();
-        SensorManager mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        List<Sensor> sensors = mSensorManager.getSensorList(Sensor.TYPE_ALL);
+        List<Sensor> sensors = SensorWrapper.getInstance().getSensorList();
         for (Sensor sensor : sensors) {
             navItems.add(new NavDrawerItem(sensor.getName(),
                     NavDrawerItem.NO_ICON));
@@ -34,7 +39,18 @@ public class MainActivity extends ActionBarDrawerActivity implements
         setNavDrawerItems(navItems);
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        SensorWrapper.getInstance().unregisterListener();
+//        SensorWriter.getInstance().un
+    }
+
+
     public boolean onOptionsItemSelected(MenuItem item) {
+        if (mDrawerToggle.onOptionsItemSelected(item)) {
+            return true;
+        }
         Fragment f = getSupportFragmentManager().findFragmentById(
                 R.id.container);
         switch (item.getItemId()) {
@@ -44,11 +60,16 @@ public class MainActivity extends ActionBarDrawerActivity implements
                 return true;
             case R.id.action_change_speed:
                 if (f instanceof GraphFragment)
-                    ((GraphFragment) f).swapSensorDelay();
+                    SensorWrapper.getInstance().swapSensorDelay();
+//                    ((GraphFragment) f).swapSensorDelay();
                 return true;
             case R.id.action_toggle_write_sensor_data:
-                if (f instanceof GraphFragment)
-                    ((GraphFragment) f).toggleWriteData();
+                if (!SensorWriter.getInstance().isWriting()) {
+                    SensorWriter.getInstance().initWriter(this);
+                    SensorWrapper.getInstance().registerObserver(SensorWriter.getInstance());
+                } else {
+                    SensorWrapper.getInstance().removeObserver(SensorWriter.getInstance());
+                }
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -58,9 +79,7 @@ public class MainActivity extends ActionBarDrawerActivity implements
     @Override
     public void onSensorSelected(int position) {
         GraphFragment gf = new GraphFragment();
-        Bundle args = new Bundle();
-        args.putInt(GraphFragment.ARG_POSITION, position);
-        gf.setArguments(args);
+        SensorWrapper.getInstance().registerObserver(gf);
         changeFragment(gf);
     }
 
@@ -75,10 +94,8 @@ public class MainActivity extends ActionBarDrawerActivity implements
     public void displayView(int position) {
         Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.container);
         if (fragment instanceof GraphFragment) {
-            SensorManager mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-            List<Sensor> sensors = mSensorManager
-                    .getSensorList(Sensor.TYPE_ALL);
-            ((GraphFragment) fragment).manageSensor(sensors.get(position));
+            List<Sensor> sensors = SensorWrapper.getInstance().getSensorList();
+            SensorWrapper.getInstance().addSensor(sensors.get(position), new MeanFilter());
         }
         switch (position) {
             case 0:

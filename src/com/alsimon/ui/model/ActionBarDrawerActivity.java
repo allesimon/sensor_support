@@ -12,7 +12,6 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.alsimon.capteurs.R;
-import com.alsimon.capteurs.SensorWriter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +22,7 @@ public abstract class ActionBarDrawerActivity extends ActionBarActivity {
     protected ActionBarDrawerToggle mDrawerToggle;
     protected CharSequence mDrawerTitle;
     protected CharSequence mTitle;
-    protected String[] navMenuTitles;
+//    protected String[] navMenuTitles;
 
     private List<NavDrawerItem> navItems;
     private NavDrawerListAdapter adapter;
@@ -80,15 +79,6 @@ public abstract class ActionBarDrawerActivity extends ActionBarActivity {
         mDrawerList.setAdapter(adapter);
     }
 
-    private class SlideMenuClickListener implements
-            ListView.OnItemClickListener {
-        @Override
-        public void onItemClick(AdapterView<?> parent, View view, int position,
-                                long id) {
-            displayView(position);
-        }
-    }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
@@ -132,6 +122,15 @@ public abstract class ActionBarDrawerActivity extends ActionBarActivity {
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         mDrawerToggle.onConfigurationChanged(newConfig);
+    }
+
+    private class SlideMenuClickListener implements
+            ListView.OnItemClickListener {
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position,
+                                long id) {
+            displayView(position);
+        }
     }
 
 }

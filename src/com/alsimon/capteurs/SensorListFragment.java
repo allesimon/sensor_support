@@ -1,9 +1,7 @@
 package com.alsimon.capteurs;
 
 import android.app.Activity;
-import android.content.Context;
 import android.hardware.Sensor;
-import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -14,6 +12,8 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
+
+import com.alsimon.sensor.SensorWrapper;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,18 +26,6 @@ public class SensorListFragment extends Fragment {
     private List<HashMap<String, String>> list = new ArrayList<HashMap<String, String>>();
     private ListView lv;
 
-    public static String ordinal(int i) {
-        String[] suffixes = new String[]{"th", "st", "nd", "rd", "th", "th",
-                "th", "th", "th", "th"};
-        switch (i % 100) {
-            case 11:
-            case 12:
-            case 13:
-                return i + "th";
-            default:
-                return i + suffixes[i % 10];
-        }
-    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -68,17 +56,14 @@ public class SensorListFragment extends Fragment {
             listener = (OnSensorSelectedListener) activity;
         } else {
             throw new ClassCastException(activity.toString()
-                    + " must implemenet MyListFragment.OnItemSelectedListener");
+                    + " must implement OnSensorSelectedListener");
         }
     }
 
     public void showSensorList() {
-        SensorManager mSensorManager = (SensorManager) getActivity().getSystemService(
-                Context.SENSOR_SERVICE);
-        List<Sensor> sensors = mSensorManager.getSensorList(Sensor.TYPE_ALL);
-        for (int i = 0; i < sensors.size(); i++) {
-            addElement(ordinal(i + 1) + " sensor", sensors.get(i).getName());
-        }
+        List<Sensor> sensors = SensorWrapper.getInstance().getSensorList();
+        for (Sensor s : sensors)
+            addElement(s.getName(), s.getPower() + "mA");
 
         ListAdapter adapter = new SimpleAdapter(getActivity(), list,
                 android.R.layout.simple_list_item_2, new String[]{FIRST_KEY,
