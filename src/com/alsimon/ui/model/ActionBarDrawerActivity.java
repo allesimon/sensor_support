@@ -8,24 +8,22 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ListView;
+import android.widget.ExpandableListView;
 
 import com.alsimon.capteurs.R;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public abstract class ActionBarDrawerActivity extends ActionBarActivity {
     protected DrawerLayout mDrawerLayout;
-    protected ListView mDrawerList;
+    protected ExpandableListView mDrawerList;
     protected ActionBarDrawerToggle mDrawerToggle;
     protected CharSequence mDrawerTitle;
     protected CharSequence mTitle;
-//    protected String[] navMenuTitles;
-
-    private List<NavDrawerItem> navItems;
-    private NavDrawerListAdapter adapter;
+    protected HashMap<String, List<NavDrawerItem>> listDataChild;
+    protected List<String> listDataHeader;
+    protected NavDrawerExpandableListAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,24 +32,26 @@ public abstract class ActionBarDrawerActivity extends ActionBarActivity {
 
         mTitle = mDrawerTitle = getTitle();
 
-//        navMenuTitles = getResources().getStringArray(R.array.nav_drawer_items);
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-        mDrawerList = (ListView) findViewById(R.id.list_slidermenu);
-        navItems = new ArrayList<NavDrawerItem>();
+        mDrawerList = (ExpandableListView) findViewById(R.id.list_slidermenu);
         mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow,
                 GravityCompat.START);
 
-        mDrawerList.setOnItemClickListener(new SlideMenuClickListener());
+        mDrawerList.setOnChildClickListener(new SlideMenuClickListener());
 
-        adapter = new NavDrawerListAdapter(getApplicationContext(), navItems);
+//        adapter = new NavDrawerListAdapter(getApplicationContext(), navItems);
         mDrawerList.setAdapter(adapter);
 
+        prepareListData();
+
+        adapter = new NavDrawerExpandableListAdapter(this, listDataHeader, listDataChild);
+        mDrawerList.setAdapter(adapter);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
 
         mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout,
                 R.drawable.ic_drawer, // nav menu toggle icon
-                R.string.app_name, // nav drawer open - description for
+                R.string.sensor_list, // nav drawer open - description for
                 // accessibility
                 R.string.app_name // nav drawer close - description for
                 // accessibility
@@ -69,15 +69,11 @@ public abstract class ActionBarDrawerActivity extends ActionBarActivity {
         mDrawerLayout.setDrawerListener(mDrawerToggle);
 
         if (savedInstanceState == null) {
-            displayView(0);
+            onNavDrawerClickListener(0, 0);
         }
     }
 
-    public void setNavDrawerItems(List<NavDrawerItem> navDrawerItems) {
-        navItems = navDrawerItems;
-        adapter = new NavDrawerListAdapter(getApplicationContext(), navItems);
-        mDrawerList.setAdapter(adapter);
-    }
+    public abstract void prepareListData();
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -98,7 +94,7 @@ public abstract class ActionBarDrawerActivity extends ActionBarActivity {
     /**
      * Diplaying fragment view for selected nav drawer list item
      */
-    public abstract void displayView(int position);
+    public abstract void onNavDrawerClickListener(int groupPosition, int childPosition);
 
     @Override
     public void setTitle(CharSequence title) {
@@ -106,15 +102,9 @@ public abstract class ActionBarDrawerActivity extends ActionBarActivity {
         getSupportActionBar().setTitle(mTitle);
     }
 
-    /**
-     * When using the ActionBarDrawerToggle, you must call it during
-     * onPostCreate() and onConfigurationChanged()...
-     */
-
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
-        // Sync the toggle state after onRestoreInstanceState has occurred.
         mDrawerToggle.syncState();
     }
 
@@ -125,11 +115,12 @@ public abstract class ActionBarDrawerActivity extends ActionBarActivity {
     }
 
     private class SlideMenuClickListener implements
-            ListView.OnItemClickListener {
+            ExpandableListView.OnChildClickListener {
+
         @Override
-        public void onItemClick(AdapterView<?> parent, View view, int position,
-                                long id) {
-            displayView(position);
+        public boolean onChildClick(ExpandableListView parent, View view, int groupPosition, int childPosition, long id) {
+            onNavDrawerClickListener(groupPosition, childPosition);
+            return false;
         }
     }
 

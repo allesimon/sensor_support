@@ -9,8 +9,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
-import com.alsimon.sensor.SensorWrapper;
+import com.alsimon.sensor.MySensorManager;
 import com.alsimon.sensor.sensorUtils.SensorsObserver;
+import com.jjoe64.graphview.CustomLabelFormatter;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.GraphView.GraphViewData;
 import com.jjoe64.graphview.GraphView.LegendAlign;
@@ -18,6 +19,7 @@ import com.jjoe64.graphview.GraphViewSeries;
 import com.jjoe64.graphview.GraphViewSeries.GraphViewSeriesStyle;
 import com.jjoe64.graphview.LineGraphView;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,12 +27,13 @@ public class GraphFragment extends Fragment implements SensorsObserver {
     private GraphView mGraphView;
     private List<GraphViewSeries> mGraphSeries;
     private String[] labels = new String[]{"x", "y", "z"};
-    private long mTimestamp;
-    private int[] colors = new int[]{Color.rgb(255, 68, 68),
-            Color.rgb(255, 187, 51), Color.rgb(51, 181, 29), Color.MAGENTA,
+    private int[] colors = new int[]{Color.RED,
+            Color.YELLOW, Color.GREEN, Color.MAGENTA,
             Color.WHITE, Color.GRAY};
     private boolean pause = true;
     private int maxNumberOfValues = 1000;
+    private DecimalFormat mDecimalFormatXaxis;
+    private DecimalFormat mDecimalFormatYaxis;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -43,6 +46,8 @@ public class GraphFragment extends Fragment implements SensorsObserver {
     }
 
     private void initField() {
+        mDecimalFormatXaxis = new DecimalFormat("#0.##");
+        mDecimalFormatYaxis = new DecimalFormat("#0.###");
         mGraphSeries = new ArrayList<GraphViewSeries>();
         mGraphView = new LineGraphView(this.getActivity(), "");
         mGraphView.setShowLegend(true);
@@ -52,10 +57,20 @@ public class GraphFragment extends Fragment implements SensorsObserver {
         mGraphView.setViewPort(0, 100);
         mGraphView.setDisableTouch(false);
         mGraphView.setBackgroundColor(Color.BLACK);
+        mGraphView.setCustomLabelFormatter(new CustomLabelFormatter() {
+            @Override
+            public String formatLabel(double value, boolean isValueX) {
+                if (isValueX) {
+                    return mDecimalFormatXaxis.format(value);
+                } else {
+                    return mDecimalFormatYaxis.format(value);
+                }
+            }
+        });
         LinearLayout layout = (LinearLayout) getView()
                 .findViewById(R.id.layout);
         layout.addView(mGraphView);
-        SensorWrapper.getInstance().registerObserver(this);
+        MySensorManager.getInstance().registerObserver(this);
     }
 
     public void drawGraph(Sensor sensor) {
@@ -73,7 +88,7 @@ public class GraphFragment extends Fragment implements SensorsObserver {
     }
 
     public int getOffset(Sensor s) {
-        return SensorWrapper.getInstance().getSensorPosition(s) * 3;
+        return MySensorManager.getInstance().getSensorPosition(s) * 3;
     }
 
     private String getSensorName(Sensor s) {
@@ -82,12 +97,12 @@ public class GraphFragment extends Fragment implements SensorsObserver {
 
 
     @Override
-    public void onDataRetrieved(Sensor sensor, float[] values, long timeStamp) {
+    public void onDataRetrieved(Sensor sensor, float[] values, float timeStamp) {
         boolean scrollToEnd;
         for (int i = 0; i < values.length; i++) {
             scrollToEnd = (i == (values.length - 1)) & pause;
             mGraphSeries.get(i + getOffset(sensor)).appendData(
-                    new GraphViewData((timeStamp - mTimestamp) / 1000000,
+                    new GraphViewData(timeStamp,
                             values[i]), scrollToEnd, maxNumberOfValues
             );
         }
@@ -109,9 +124,6 @@ public class GraphFragment extends Fragment implements SensorsObserver {
         super.onStop();
     }
 
-    public void toggleWriteData() {
-
-    }
 
     public String getAxisLabel(int i) {
         return this.labels[i % labels.length];
@@ -143,12 +155,16 @@ public class GraphFragment extends Fragment implements SensorsObserver {
 
     @Override
     public void onSensorAdded(Sensor s) {
-        mTimestamp = System.currentTimeMillis();
         drawGraph(s);
     }
 
     @Override
     public void onSensorRemoved(Sensor s) {
-
+        int offset = getOffset(s);
+        for (int i = offset; i < offset + 3; i++) {
+            mGraphSeries.remove(i);
+            mGraphView.removeSeries(i);
+            mGraphView.setShowLegend(true);
+        }
     }
 }

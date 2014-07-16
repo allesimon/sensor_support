@@ -53,7 +53,7 @@ public class NavDrawerListAdapter extends BaseAdapter {
         if (navItem.getIcon() != NavDrawerItem.NO_ICON) {
             imgIcon.setImageResource(navItem.getIcon());
         } else {
-            imgIcon.setVisibility(View.INVISIBLE);
+            imgIcon.setVisibility(View.GONE);
         }
         txtTitle.setText(navItem.getTitle());
 

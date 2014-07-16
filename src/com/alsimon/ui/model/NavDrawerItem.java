@@ -2,6 +2,7 @@ package com.alsimon.ui.model;
 
 public class NavDrawerItem {
     public static final int NO_ICON = -1;
+    public static final boolean SECOND_TEXT_VISIBLE = true;
     private String title;
     private int icon;
     private String count = "0";

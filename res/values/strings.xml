@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Capteurs</string>
-    <string name="hello_world">Hello world!</string>
+    <string name="app_name">Sensor</string>
+    <string name="sensor_list">Sensors list</string>
     <string name="action_pause">Pause</string>
     <string name="change_speed">Change speed</string>
     <string name="change_toggle_write_sensor_data">Write to CSV</string>
+    <string name="icon">Icon</string>
 </resources>

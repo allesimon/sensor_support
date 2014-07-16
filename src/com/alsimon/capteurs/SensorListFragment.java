@@ -13,7 +13,7 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 
-import com.alsimon.sensor.SensorWrapper;
+import com.alsimon.sensor.MySensorManager;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -61,7 +61,7 @@ public class SensorListFragment extends Fragment {
     }
 
     public void showSensorList() {
-        List<Sensor> sensors = SensorWrapper.getInstance().getSensorList();
+        List<Sensor> sensors = MySensorManager.getInstance().getSensorList();
         for (Sensor s : sensors)
             addElement(s.getName(), s.getPower() + "mA");
 

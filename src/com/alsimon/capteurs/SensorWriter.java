@@ -17,10 +17,6 @@ import java.util.Map;
 
 import au.com.bytecode.opencsv.CSVWriter;
 
-/*
-IMPORTANT: call  SensorWriter.getInstance().close();
-{@link #close()}.
- */
 public class SensorWriter implements SensorsObserver {
     Map<Sensor, CSVWriter> mWriter;
     File mExternalFileDir;
@@ -32,7 +28,7 @@ public class SensorWriter implements SensorsObserver {
 
     /**
      * IMPORTANT: call {@link #close()} in the onStop/onPause method of your Fragment/Activity  ;
-     * call {@link #initWriter(android.app.Activity)} before using the {@link #writeFloat(android.hardware.Sensor, float[], long)} method
+     * call {@link #initWriter(android.app.Activity)} before using the {@link #writeFloat(android.hardware.Sensor, float[], float)} method
      */
     public static SensorWriter getInstance() {
         return SingletonHolder.instance;
@@ -49,7 +45,7 @@ public class SensorWriter implements SensorsObserver {
     }
 
     @Override
-    public void onDataRetrieved(Sensor sensor, float[] values, long timeStamp) {
+    public void onDataRetrieved(Sensor sensor, float[] values, float timeStamp) {
         writeFloat(sensor, values, timeStamp);
     }
 
@@ -102,12 +98,12 @@ public class SensorWriter implements SensorsObserver {
         }
     }
 
-    public void writeFloat(Sensor sensor, float[] values, long timestamp) {
+    public void writeFloat(Sensor sensor, float[] values, float timestamp) {
         String s[] = new String[values.length + 1];
         for (int i = 0; i < values.length; i++) {
             s[i + 1] = Float.toString(values[i]);
         }
-        s[0] = Long.toString(timestamp);
+        s[0] = Float.toString(timestamp);
         getWriter(sensor).writeNext(s);
         count--;
         if (count == 0) {

@@ -8,5 +8,5 @@ public interface SensorsObserver {
 
     public void onSensorRemoved(Sensor sensor);
 
-    public void onDataRetrieved(Sensor sensor, float[] values, long timeStamp);
+    public void onDataRetrieved(Sensor sensor, float[] values, float timeStamp);
 }
