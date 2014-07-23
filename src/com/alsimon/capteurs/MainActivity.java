@@ -7,6 +7,10 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.view.MenuItem;
 
+import com.alsimon.filter.HighPassFilter;
+import com.alsimon.filter.LowPassFilter;
+import com.alsimon.filter.MedianFilter;
+import com.alsimon.filter.SimpleFilter;
 import com.alsimon.sensor.MySensorManager;
 import com.alsimon.ui.model.ActionBarDrawerActivity;
 import com.alsimon.ui.model.NavDrawerItem;
@@ -20,14 +24,23 @@ public class MainActivity extends ActionBarDrawerActivity {
     private final int NAVDRAWER_GROUP_ADD_SENSOR = 0;
     private final int NAVDRAWER_GROUP_REMOVE_SENSOR = 1;
     private final int NAVDRAWER_GROUP_MANAGE_FILTER = 2;
+    private String NAVDRAWER_STRING_ADD_SENSOR;
+    private String NAVDRAWER_STRING_REMOVE_SENSOR;
+    private String NAVDRAWER_STRING_MANAGE_FILTER;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        initString();
         super.onCreate(savedInstanceState);
         changeFragment(new GraphFragment());
-
         if (savedInstanceState == null)
             mDrawerLayout.openDrawer(mDrawerList);
+    }
+
+    public void initString() {
+        NAVDRAWER_STRING_ADD_SENSOR = this.getResources().getString(R.string.addSensor);
+        NAVDRAWER_STRING_REMOVE_SENSOR = this.getResources().getString(R.string.removeSensor);
+        NAVDRAWER_STRING_MANAGE_FILTER = this.getResources().getString(R.string.manageFilter);
     }
 
     @Override
@@ -37,9 +50,9 @@ public class MainActivity extends ActionBarDrawerActivity {
         listDataHeader = new ArrayList<String>();
         listDataChild = new HashMap<String, List<NavDrawerItem>>();
 
-        listDataHeader.add("Add sensors");
-        listDataHeader.add("Remove sensors");
-        listDataHeader.add("Manage filters");
+        listDataHeader.add(NAVDRAWER_STRING_ADD_SENSOR);
+        listDataHeader.add(NAVDRAWER_STRING_REMOVE_SENSOR);
+        listDataHeader.add(NAVDRAWER_STRING_MANAGE_FILTER);
 
         // Adding child data
         List<NavDrawerItem> add_sensors = new ArrayList<NavDrawerItem>();
@@ -61,6 +74,12 @@ public class MainActivity extends ActionBarDrawerActivity {
     protected void onPause() {
         super.onPause();
         MySensorManager.getInstance().unregisterListener();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        MySensorManager.getInstance().registerListener();
     }
 
 
@@ -104,30 +123,32 @@ public class MainActivity extends ActionBarDrawerActivity {
         if (fragment instanceof GraphFragment) {
             if (groupPosition == NAVDRAWER_GROUP_ADD_SENSOR) {
                 List<Sensor> sensors = MySensorManager.getInstance().getSensorList();
-                MySensorManager.getInstance().addSensor(sensors.get(childPosition));
+                MySensorManager.getInstance().addSensor(sensors.get(childPosition), new LowPassFilter(3), new SimpleFilter(3), new MedianFilter(3, 10), new HighPassFilter(3, 30));
                 //Add sensor to the "remove sensors" group
-                List<NavDrawerItem> sensorsAlreadyAdded = listDataChild.get("Remove sensors");
+                List<NavDrawerItem> sensorsAlreadyAdded = listDataChild.get(NAVDRAWER_STRING_REMOVE_SENSOR);
                 if (sensorsAlreadyAdded == null)
                     sensorsAlreadyAdded = new ArrayList<NavDrawerItem>();
                 sensorsAlreadyAdded.add(sensor2NavDrawerItem(sensors.get(childPosition)));
                 listDataChild.put(listDataHeader.get(NAVDRAWER_GROUP_REMOVE_SENSOR), sensorsAlreadyAdded);
+                listDataChild.put(listDataHeader.get(NAVDRAWER_GROUP_MANAGE_FILTER), sensorsAlreadyAdded);
                 adapter.notifyDataSetChanged();
             } else if (groupPosition == NAVDRAWER_GROUP_REMOVE_SENSOR) {
-                List<NavDrawerItem> sensorsAlreadyAdded = listDataChild.get("Remove sensors");
+                List<NavDrawerItem> sensorsAlreadyAdded = listDataChild.get(NAVDRAWER_STRING_REMOVE_SENSOR);
                 if (sensorsAlreadyAdded != null) {
                     MySensorManager.getInstance().removeSensor(navDrawerItem2Sensor(sensorsAlreadyAdded.get(childPosition)));
                     sensorsAlreadyAdded.remove(childPosition);
                     adapter.notifyDataSetChanged();
                 }
+            } else if (groupPosition == NAVDRAWER_GROUP_MANAGE_FILTER) {
+                showFilterDialog(MySensorManager.getInstance().getSensorAtPosition(childPosition), childPosition);
             }
-        }
-
-        if (fragment != null) {
-            mDrawerList.setItemChecked(childPosition, true);
-            mDrawerList.setSelection(childPosition);
-            mDrawerLayout.closeDrawer(mDrawerList);
-        } else {
-            Logg.e("Error in creating fragment");
+            if (fragment != null) {
+                mDrawerList.setItemChecked(childPosition, true);
+                mDrawerList.setSelection(childPosition);
+                mDrawerLayout.closeDrawer(mDrawerList);
+            } else {
+                Logg.e("Error in creating fragment");
+            }
         }
     }
 
@@ -143,4 +164,11 @@ public class MainActivity extends ActionBarDrawerActivity {
         }
         return null;
     }
+
+    void showFilterDialog(Sensor sensor, int position) {
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        FilterDialogFragment newFragment = FilterDialogFragment.newInstance(sensor.getName(), position);
+        newFragment.show(ft, "dialog");
+    }
+
 }

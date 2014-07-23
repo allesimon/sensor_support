@@ -43,11 +43,17 @@ public class MySensorManager implements SensorsObservable {
     }
 
     public void removeSensor(Sensor sensor) {
-        Logg.e(sensor);
         int position = getSensorPosition(sensor);
-        Logg.e(position);
         mSensorManager.unregisterListener(mSensor.get(position).getSensorEventListener());
         mSensor.remove(position);
+    }
+
+    public void removeFilter(int sensorNumber, int filterNumber) {
+        try {
+            mSensor.get(sensorNumber).getFilters().remove(filterNumber);
+        } catch (Exception e) {
+            Logg.e(sensorNumber, filterNumber);
+        }
     }
 
     public List<Sensor> getSensorList() {
@@ -60,6 +66,14 @@ public class MySensorManager implements SensorsObservable {
                 return sensor.getType() - sensor2.getType();
             }
         });
+        return sensorsTemp;
+    }
+
+    public List<Sensor> getSensorInUse() {
+        List<Sensor> sensorsTemp = new ArrayList<Sensor>();
+        for (SensorAndFilter saf : mSensor) {
+            sensorsTemp.add(saf.getSensor());
+        }
         return sensorsTemp;
     }
 
@@ -89,8 +103,16 @@ public class MySensorManager implements SensorsObservable {
     }
 
     public void unregisterListener() {
+        Logg.printFullTrace();
         for (SensorAndFilter sensorAndFilter : mSensor) {
             mSensorManager.unregisterListener(sensorAndFilter.getSensorEventListener());
+        }
+    }
+
+    public void registerListener() {
+        Logg.printFullTrace();
+        for (SensorAndFilter sensorAndFilter : mSensor) {
+            mSensorManager.registerListener(sensorAndFilter.getSensorEventListener(), sensorAndFilter.getSensor(), mSensorDelay);
         }
     }
 
@@ -149,6 +171,16 @@ public class MySensorManager implements SensorsObservable {
         return -1;
     }
 
+    public Sensor getSensorAtPosition(int position) {
+        return mSensor.get(position).getSensor();
+    }
+
+    public List<AbstractFilter> getFiltersForSensor(int position) {
+        if (position > mSensor.size())
+            return null;
+        return mSensor.get(position).getFilters();
+    }
+
     private static class SingletonHolder {
 
         private final static MySensorManager instance = new MySensorManager();
@@ -159,11 +191,17 @@ public class MySensorManager implements SensorsObservable {
         @Override
         public void onSensorChanged(SensorEvent sensorEvent) {
             float[] values = sensorEvent.values;
-            SensorAndFilter saf = mSensor.get(getSensorPosition(sensorEvent.sensor));
-            for (AbstractFilter filter : saf.getFilters()) {
-                filter.filterFloat(values);
+            SensorAndFilter saf;
+            try {
+                saf = mSensor.get(getSensorPosition(sensorEvent.sensor));
+                for (AbstractFilter filter : saf.getFilters()) {
+                    values = filter.filterFloat(values);
+                }
+                notifyObserversDataRetrieved(sensorEvent.sensor, values, sensorEvent.timestamp);
+            } catch (ArrayIndexOutOfBoundsException e) {
+                Logg.e("Sensor removedd");
+                e.printStackTrace();
             }
-            notifyObserversDataRetrieved(sensorEvent.sensor, values, sensorEvent.timestamp);
         }
 
         @Override

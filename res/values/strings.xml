@@ -6,4 +6,9 @@
     <string name="change_speed">Change speed</string>
     <string name="change_toggle_write_sensor_data">Write to CSV</string>
     <string name="icon">Icon</string>
+    <string name="addSensor">Add sensor</string>
+    <string name="removeSensor">Remove sensor</string>
+    <string name="addFilter">Add filter</string>
+    <string name="removeFilter">Remove filter</string>
+    <string name="manageFilter">Manage filter</string>
 </resources>

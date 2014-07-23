@@ -5,8 +5,11 @@ public class SimpleMeanFilter extends AbstractFilter {
     private float[] sum;
     private boolean dataInit = false;
 
-    @Override
-    public float[] filterFloat(float[] data) {
+    public SimpleMeanFilter(int sampleSize) {
+        super(sampleSize);
+    }
+
+    public float[] filterFloatDefensive(float[] data) {
         if (!dataInit) {
             count = 0;
             sum = new float[data.length];

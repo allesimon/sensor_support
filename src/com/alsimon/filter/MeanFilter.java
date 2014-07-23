@@ -11,12 +11,14 @@ public class MeanFilter extends AbstractFilter {
 
     private ArrayList<LinkedList<Number>> dataLists;
 
-    public MeanFilter() {
+    public MeanFilter(int sampleSize) {
+        super(sampleSize);
         dataLists = new ArrayList<LinkedList<Number>>();
         dataInit = false;
     }
 
-    public float[] filterFloat(float[] data) {
+    public float[] filterFloatDefensive(float[] data) {
+
         for (int i = 0; i < data.length; i++) {
             if (!dataInit) {
                 dataLists.add(new LinkedList<Number>());

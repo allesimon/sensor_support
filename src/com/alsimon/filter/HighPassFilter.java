@@ -3,16 +3,13 @@ package com.alsimon.filter;
 import java.util.HashMap;
 import java.util.Map;
 
-public class LowPassFilter extends AbstractFilter implements FilterUI {
+public class HighPassFilter extends AbstractFilter implements FilterUI {
     float smoothedData[];
+    float oldInputData[];
     float timeConstant = 40;
     long lastUpdate;
 
-    public LowPassFilter(int sampleSize) {
-        super(sampleSize);
-    }
-
-    public LowPassFilter(int sampleSize, float timeConstant) {
+    public HighPassFilter(int sampleSize, float timeConstant) {
         super(sampleSize);
         this.timeConstant = timeConstant;
     }
@@ -27,20 +24,20 @@ public class LowPassFilter extends AbstractFilter implements FilterUI {
         if (smoothedData == null) {
             smoothedData = data;
             lastUpdate = System.currentTimeMillis();
+            oldInputData = data;
         }
 
 
         if (lastUpdate == 0 || timeConstant == 0) {
-            for (int i = 0; i < sampleSize; i++) {
-                smoothedData[i] = (data[i]);
-            }
+            System.arraycopy(data, 0, smoothedData, 0, sampleSize);
         } else {
             float dt = (float) ((System.currentTimeMillis() - lastUpdate) / 1000.0);
-            float a = dt / (timeConstant + dt);
+            float a = timeConstant / (timeConstant + dt);
             for (int i = 0; i < sampleSize; i++) {
-                smoothedData[i] = (1 - a) * smoothedData[i] + a * data[i];
+                smoothedData[i] = a * (smoothedData[i] + data[i] - oldInputData[i]);
             }
         }
+        oldInputData = data;
         lastUpdate = System.currentTimeMillis();
 
         return smoothedData;
@@ -48,7 +45,7 @@ public class LowPassFilter extends AbstractFilter implements FilterUI {
 
     @Override
     public String getName() {
-        return "Low Pass filter";
+        return "High pass filter";
     }
 
     @Override
